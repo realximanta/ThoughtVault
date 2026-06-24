@@ -1,0 +1,8 @@
+
+==================================================
+RUN: 2026-06-24 10:23:05 IST
+{
+  "ok": false,
+  "error_code": 409,
+  "description": "Conflict: can't use getUpdates method while webhook is active; use deleteWebhook to delete the webhook first"
+}
