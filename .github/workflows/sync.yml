@@ -8,30 +8,49 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: thoughtvault-sync
+  cancel-in-progress: false
+
 jobs:
   sync:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - run: pip install -r requirements.txt
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
 
-      - run: python bot.py
+      - name: Run ThoughtVault
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           ALLOWED_USER_ID: ${{ secrets.ALLOWED_USER_ID }}
+        run: |
+          python bot.py
 
-      - run: |
+      - name: Show Status
+        run: |
+          echo "----- LAST RUN -----"
+          cat data/last_run.txt || true
+
+      - name: Commit Changes
+        run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add notes data
 
-          git diff --cached --quiet || git commit -m "Update notes [skip ci]"
-
-          git push
+          if git diff --cached --quiet; then
+            echo "No changes detected."
+          else
+            git commit -m "ThoughtVault Sync [skip ci]"
+            git push
+          fi
